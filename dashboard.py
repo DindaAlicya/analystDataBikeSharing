@@ -53,8 +53,16 @@ with st.sidebar:
     weatherFilter = st.sidebar.multiselect(
         ":sun_behind_rain_cloud: Select weather condition",
         day_df["weather"].unique(),
-        default=day_df["weather"].unique()
-    
+        default=day_df["weather"].unique()   
+    )
+    business_question = st.selectbox(
+
+        "Select Business Question",
+        [
+            "1. Musim apa yang memiliki jumlah penyewaan tertinggi dan terendah sepanjang waktu?  lalu bagaimana cara meningkatkan penyewaan pada musim dengan jumlah penyewaan rendah?",
+            "2. Apakah benar cuaca mempengaruhi faktor jumlah penyewaan sepeda?",
+            "3. Bagaimana cara meningkatkan penyewaan sepeda di waktu saat penyewaan sepeda cenderung rendah?"
+        ]
     )
 
 # menampilkan hasil pilihan
@@ -96,8 +104,6 @@ ax.set_xticklabels(dayFiltered["date"], rotation=90)
 ax.set_ylabel("Total Rentals")
 st.pyplot(fig)
 
-# pie chart total penyewaan sepeda berdasarkan musim
-st.subheader("Bike rentals by reason")
 seasonTotal = dayFiltered.groupby("season")["total_rent"].sum()
 fig2, ax2 = plt.subplots()
 ax2.pie(seasonTotal, labels=seasonTotal.index, autopct='%1.1f%%', startangle=90, colors=['#95abaf','#eda325','#ffee6a','#74a2ea'])
@@ -106,19 +112,22 @@ st.pyplot(fig2)
 
 # bar chart total penyewaan sepeda berdasarkan filter cuaca yang dipilih (default, semua cuaca terlihat)
 st.subheader("Bike rentals by weather condition")
-weatherTotal = day_df.groupby("weather")[["user_casual", "user_registered"]].sum()
+weatherTotal = dayFiltered.groupby("weather")[["user_casual", "user_registered"]].sum()
+ax.set_ylabel("Total Rentals")
 st.bar_chart(weatherTotal)
 
 # bar chart perbandingan total penyewaan sepeda dalam seminggu(sesuai rentang waktu yang dipilih)
 st.subheader("Bike rentals in a week")
 fig4, ax4 = plt.subplots()
 weekCount = dayFiltered.groupby("weekday")[["user_casual", "user_registered"]].sum()
+ax.set_ylabel("Total Rentals")
 st.bar_chart(weekCount)
 
 # bar chart perbandingan total penyewaan sepeda di hari working day and not working day
 st.subheader("Bike rentals workingday & Non-working day")
 fig5, ax5 = plt.subplots()
 workingCount = dayFiltered.groupby("workingday")[["user_casual", "user_registered"]].sum()
+ax.set_ylabel("Total Rentals")
 st.bar_chart(workingCount)
 
 
@@ -126,8 +135,71 @@ st.bar_chart(workingCount)
 st.subheader("Bike rentals holiday & Non-Holiday")
 fig6, ax6 = plt.subplots()
 holidayCount = dayFiltered.groupby("holiday")[["user_casual", "user_registered"]].sum()
+ax.set_ylabel("Total Rentals")
 st.bar_chart(holidayCount)
- 
+
+
+with st.container():
+    st.subheader(" Business Insights")
+
+    if business_question == "1. Musim apa yang memiliki jumlah penyewaan tertinggi dan terendah sepanjang waktu?  lalu bagaimana cara meningkatkan penyewaan pada musim dengan jumlah penyewaan rendah?":
+        st.write("##### 1. Musim apa yang memiliki jumlah penyewaan tertinggi dan terendah sepanjang waktu?  lalu bagaimana cara meningkatkan penyewaan pada musim dengan jumlah penyewaan rendah?")
+        seasonTotal = day_df.groupby("season")["total_rent"].sum()
+        fig, ax = plt.subplots()
+        ax.pie(seasonTotal, labels=seasonTotal.index, autopct='%1.1f%%', startangle=90, colors=['#95abaf','#eda325','#ffee6a','#74a2ea'])
+        ax.set_ylabel("Total Rentals")
+        ax.axis('equal')
+        st.pyplot(fig)
+        st.write("""
+                 Berdasarkan hasil analisis yang telah kita lakukan, musim yang memiliki total penyewaan tertinggi adalah musim **fall** dan musim yang memiliki total penyewaan terendah adalah musim **spring**. kita dapat meningkatkan penyewaan pada musim dengan jumlah penyewaan rendah dengaan cara memberi penwaran yang menarik untuk mereka, seperti:
+
+- memberi reward berupa unique stuff untuk 20 orang pertama yang menyewa sepeda pada musim tersebut
+- membuat diskon lebih hemat dengan pare (paket rame-rame), yang akan memberikan potongan harga jika menyewa sepeda 4 sekaligus .
+dan membuat penawaran menarik lainnya.
+                 """)
+
+    elif business_question == "2. Apakah benar cuaca mempengaruhi faktor jumlah penyewaan sepeda?":
+        st.write("##### 2. Apakah benar cuaca mempengaruhi faktor jumlah penyewaan sepeda?")
+        st.subheader("Bike rentals by weather condition")
+        weatherTotal = day_df.groupby("weather")[["user_casual", "user_registered"]].sum()
+        ax.set_ylabel("Total Rentals")
+        st.bar_chart(weatherTotal)
+        st.write("Ya, sangat mempengaruhi, berdasarkan hasil analisis yang telah dilakukan dan terlihat pada visualisasi data diatas, penyewaan sepeda paling banyak terjadi saat cuaca sedang cerah. sedangkan pada saat cuaca sedang hujan, penyewaan sepeda menurun drastis hal ini menunjukkan bahwa banyak dari penyewa sepeda yang jarang mengendarai sepeda saat cuaca sedang tidak baik.")
+
+    else:
+        st.write("##### 3. Bagaimana cara meningkatkan penyewaan sepeda di waktu saat penyewaan sepeda cenderung rendah?")
+        
+        st.subheader("Bike rentals in a week")
+        weekCount = day_df.groupby("weekday")[["user_casual", "user_registered"]].sum()
+        ax.set_ylabel("Total Rentals")
+        st.bar_chart(weekCount)
+
+        st.subheader("Bike rentals workingday & Non-working day")
+        workingCount = day_df.groupby("workingday")[["user_casual", "user_registered"]].sum()
+        ax.set_ylabel("Total Rentals")
+        st.bar_chart(workingCount)
+
+        st.subheader("Bike rentals holiday & Non-Holiday")
+        holidayCount = day_df.groupby("holiday")[["user_casual", "user_registered"]].sum()
+        ax.set_ylabel("Total Rentals")
+        st.bar_chart(holidayCount)
+
+        st.subheader("bike rentals per hour")
+        fig, ax = plt.subplots(figsize=(10, 5))
+        sns.lineplot(x=hour_df['hour'], y=hour_df['total_rent'], marker='o', color='red', ax=ax)
+        ax.set_xticks(range(0, 24))
+        ax.set_xticklabels([f"{i:02d}:00" for i in range(24)], rotation=45)
+        ax.set_xlabel("Hour")
+        ax.set_ylabel("Total Rentals")
+        ax.grid(axis='y', linestyle='--', alpha=0.7)
+        st.pyplot(fig)
+        st.write(""" 
+                 Dalam visualisasi data yang telah kita amati, kita dapat menyimpulkan bahwa penyewaan sepeda tertinggi terdapat pada hari weekday, working day, not holiday dan rentang waktu 07:00 A.M - 19:00 P.M.
+
+sehingga dari data tersebut kita dapat menyimpulkan bahwa sebagian besar penyewa sepeda merupakan seorang pekerja atau seorang pelajar yang memanfaatkan sepeda untuk melakukan kegiatan produktif mereka.
+
+namun untuk meningkatkan penyewaan sepeda di waktu yang cenderung rendah (saat weekend dan holiday) kita bisa menargetkan strategi *marketing* untuk bisa melakukan promosi di waktu tersebut, promosi bisa dilakukan dengan membuat diskon penyewaan sepeda di waktu saat penyewaan cenderung rendah.
+                 """)
 
 # data display, statistik deskriptif
 st.subheader(":bar_chart: Filtered Data")
